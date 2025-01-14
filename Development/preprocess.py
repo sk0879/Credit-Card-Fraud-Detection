@@ -3,13 +3,18 @@ from sklearn.preprocessing import RobustScaler
 
 def preprocess_data(file_path):
     df = pd.read_csv(file_path)
-    df['Amount'] = RobustScaler().fit_transform(df['Amount'].values.reshape(-1, 1))
-    df['Time'] = (df['Time'] - df['Time'].min()) / (df['Time'].max() - df['Time'].min())
+    
+    # Normalize 'Amount' and scale 'Time'
+    df['Amount'] = RobustScaler().fit_transform(df['Amount'].to_numpy().reshape(-1, 1))
+    time = df['Time']
+    df['Time'] = (time - time.min()) / (time.max() - time.min())
+    
+    # Shuffle the data
+    df = df.sample(frac=1, random_state=1)
     return df
 
-def split_data(df, train_frac=0.8, val_frac=0.1):
-    df = df.sample(frac=1, random_state=1)
-    train_end = int(train_frac * len(df))
-    val_end = int(val_frac * len(df)) + train_end
-    train, val, test = df[:train_end], df[train_end:val_end], df[val_end:]
-    return train, val, test
+def split_data(df):
+    train = df[:240000]
+    test = df[240000:262000]
+    val = df[262000:]
+    return train, test, val
